@@ -29,6 +29,7 @@
 #include "psxhw.h"
 #include "debug.h"
 
+#ifndef __SWITCH__
 #include "memmap.h"
 
 #ifndef MAP_ANONYMOUS
@@ -99,6 +100,8 @@ void psxUnmap(void *ptr, size_t size, enum psxMapTag tag)
 	if (ptr)
 		munmap(ptr, size);
 }
+
+#endif
 
 s8 *psxM = NULL; // Kernel & User Memory (2 Meg)
 s8 *psxP = NULL; // Parallel Port (64K)
