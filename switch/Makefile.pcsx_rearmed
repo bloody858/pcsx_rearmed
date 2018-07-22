@@ -1,0 +1,90 @@
+ifeq ($(strip $(DEVKITA64)),)
+$(error "Please set DEVKITA64 in your environment. export DEVKITA64=<path to>devkitA64")
+endif
+
+include $(DEVKITA64)/base_tools
+
+BUILD = build
+PCSX_LIB = $(BUILD)/libpcsx_rearmed.a
+
+# --- PCSX ---
+
+OBJS := ../libpcsxcore/cdriso.o \
+				../libpcsxcore/cdrom.o \
+				../libpcsxcore/cheat.o \
+				../libpcsxcore/debug.o \
+				../libpcsxcore/decode_xa.o \
+				../libpcsxcore/disr3000a.o \
+				../libpcsxcore/mdec.o \
+				../libpcsxcore/misc.o \
+				../libpcsxcore/plugins.o \
+				../libpcsxcore/ppf.o \
+				../libpcsxcore/psxbios.o \
+				../libpcsxcore/psxcommon.o \
+				../libpcsxcore/psxcounters.o \
+				../libpcsxcore/psxdma.o \
+				../libpcsxcore/psxhle.o \
+				../libpcsxcore/psxhw.o \
+				../libpcsxcore/psxinterpreter.o \
+				../libpcsxcore/psxmem.o \
+				../libpcsxcore/r3000a.o \
+				../libpcsxcore/sio.o \
+				../libpcsxcore/socket.o \
+				../libpcsxcore/spu.o \
+				../libpcsxcore/gte.o \
+				../libpcsxcore/gte_nf.o \
+				../libpcsxcore/gte_divider.o \
+				../libpcsxcore/new_dynarec/backends/psx/emu_if.o \
+				../plugins/dfsound/dma.o \
+				../plugins/dfsound/freeze.o \
+				../plugins/dfsound/registers.o \
+				../plugins/dfsound/spu.o \
+				../plugins/dfsound/out.o \
+				../plugins/dfsound/nullsnd.o \
+				../plugins/gpulib/gpu.o \
+				../plugins/gpulib/vout_pl.o \
+				../plugins/gpu_unai/gpulib_if.o \
+				../plugins/cdrcimg/cdrcimg.o \
+				../plugins/dfinput/main.o \
+				../plugins/dfinput/pad.o \
+				../plugins/dfinput/guncon.o \
+				../frontend/cspace.o \
+				../frontend/main.o \
+				../frontend/plugin.o
+
+NXLIB	:= $(DEVKITPRO)/libnx
+INCLUDES := \
+	-I./include \
+	-I./../include \
+	-I./../libpcsxcore \
+	-I$(DEVKITPRO)/portlibs/switch/include
+
+#---------------------------------------------------------------------------------
+# options for code generation
+#---------------------------------------------------------------------------------
+LOCAL_CFLAGS := \
+	-ffunction-sections -fdata-sections \
+	-DDRC_DISABLE -DHAVE_THREADS=1 -DREARMED -DNO_OS -DNO_DYLIB -DNO_SOCKET -DNO_FRONTEND
+
+LOCAL_CPPFLAGS := $(LOCAL_CFLAGS) \
+	-ffunction-sections -fdata-sections \
+	-fno-rtti -fno-exceptions -fvisibility-inlines-hidden
+
+ARCH		:=	-march=armv8-a -mtune=cortex-a57 -mtp=soft -fPIE
+CFLAGS		:= -Wall -O3 -ffast-math $(ARCH)
+CFLAGS		+= $(INCLUDES) -DARM11 -D_SWITCH -D__SWITCH__ $(LOCAL_CFLAGS)
+CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11 $(LOCAL_CPPFLAGS)
+ASFLAGS		:= $(ARCH)
+LDFLAGS		:= -specs=switch.specs $(ARCH) -Wl,-Map,$(notdir $*.map)
+
+all: $(BUILD) $(OBJS) $(PCSX_LIB)
+
+$(BUILD):
+	@[ -d $@ ] || mkdir -p $@
+
+$(PCSX_LIB): $(OBJS)
+	$(AR) -rc $@ $^
+
+clean:
+	@rm -rf $(OBJS) $(BUILD)
+
