@@ -1,5 +1,5 @@
 
-PCSX-ReARMed - yet another PCSX fork, ARM special
+PCSX-ReARMed - yet another PCSX fork, ARM special Test
 
 http://notaz.gp2x.de/pcsx_rearmed.php
 
